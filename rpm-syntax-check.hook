@@ -1,0 +1,52 @@
+#!/bin/bash
+# pre-commit git hook to check the validity of a RPM Spec files
+# 
+# Prerequisites: 
+#   yum install rpmlint
+# 
+# Install: 
+#  /path/to/repo/.git/hooks/
+echo "### Checking RPM Spec Syntax ###"
+
+for file in `git diff --name-only --cached | grep -E '\.(spec|rpm)'`
+do
+  # Only check new/modified files
+  if [[ -f $file ]]
+  then
+    echo -e "\n### Linting Scripts ###"
+    results=`rpmlint -i $file`
+    report=`echo "$results" | tail -2 | awk -F';' '{print $2}'`
+    errors=`echo $report | awk -F',' '{print $1}' | sed 's/[^0-9]//g'`
+    warnings=`echo $report | awk -F',' '{print $2}' | sed 's/[^0-9]//g'`
+    syntax="pass"
+    
+    # Bail if we receive any errors
+    if [[ -n $results ]]
+    then
+      echo "$results"
+      if [[ $errors -ne 0 ]]
+      then
+        syntax="fail"
+      fi
+      if [[ $warnings -ne 0 ]]
+      then
+        syntax="warn"
+      fi
+    else     
+      echo -e "\n### Attempting Dry-Run of Build ###"
+      rpmbuild --nobuild $file
+      if [[ $? -ne 0 ]]
+      then
+        syntax="fail"
+      fi
+    fi
+
+    if [[ $syntax != "pass" ]]
+    then
+      echo -e "\nFATAL: Syntax is bad. See above output, bailing commit...."
+      exit 1
+    fi
+  else
+    echo -e "\nThere doesn't seem to be any staged work to be commited."
+  fi
+done
