@@ -2,13 +2,12 @@
 <?php
 
 // Get the args
-$tag         = $argv[1];
 $targetPath  = "/tmp/minification/";
-$environment = (isset($argv[2]))?$argv[2]:'production';
+$environment = (isset($argv[1]))?$argv[1]:'production';
 
 // validate that two args passed in
-if (!$tag || !($environment == 'production' || $environment == 'beta')) {
-    echo "usage: git <tag> [environment=production|beta]\n\n";
+if (!($environment == 'production' || $environment == 'beta')) {
+    echo "usage: git [environment=production|beta]\n\n";
     die();
 }
 
@@ -29,12 +28,16 @@ $taglist = explode("\n", trim($taglist));
 
 // Validate that target tag exists
 $tagexist = false;
-foreach($taglist as $t)
-    if ($t == $tag)
+// Iterate backwords through tags to find the most recent 2.X.X.X version
+for($i = count($taglist) - 1; $i > 0; $i--) {
+    if (substr($taglist[$i], 0, 2) === '2.') {
         $tagexist = true;
-
+        $tag = $taglist[$i];
+        break;
+    }
+}
 if (!$tagexist) {
-    echo "You must specify a tag that exists in the current repo.\n\n";
+    echo "Could not locate a valid 2.X tag in the current repo.\n\n";
     die();
 }
 
@@ -55,7 +58,7 @@ if (!is_dir($targetPath))
     `mkdir $targetPath -p`;
 $targetPath = realpath($targetPath);
 
-// file_put_contents($workingdir."/VERSION", $tag);
+file_put_contents($workingdir."/VERSION", $tag);
 
 define('APPLICATION_ENV',$environment);
 define('APPLICATION_PATH',$workingdir.'/application/');
