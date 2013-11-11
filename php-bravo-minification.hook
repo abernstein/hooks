@@ -1,4 +1,9 @@
 #!/usr/bin/php -q
+#
+# Installation:
+# Add the following line to .git/hooks/post-checkout
+#    php -f .git/hooks/php-bravo-minification.hook beta
+#
 <?php
 
 // Get the args
