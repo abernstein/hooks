@@ -7,4 +7,5 @@ If you are looking to manage a complex project with hooks for different language
 You will probably need to merge a few of these together if your project contains different file types.
 
 * Install
+
 Add to the .git/hooks or .git/hooks/module/*/hooks
