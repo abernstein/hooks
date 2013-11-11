@@ -1,0 +1,110 @@
+#!/usr/bin/php -q
+<?php
+
+// Get the args
+$tag         = $argv[1];
+$targetPath  = "/tmp/minification/";
+$environment = (isset($argv[2]))?$argv[2]:'production';
+
+// validate that two args passed in
+if (!$tag || !($environment == 'production' || $environment == 'beta')) {
+    echo "usage: git <tag> [environment=production|beta]\n\n";
+    die();
+}
+
+`sudo -p "Build process requires sudo access. Enter sudo password:" echo ""`;
+
+echo "**** BUILDING <$environment> TO $targetPath ****\n";
+
+// Get the tag list
+$taglist = `git tag`;
+$taglist = trim($taglist);
+
+if (strlen($taglist) == 0) {
+    echo "\n";
+    die();
+}
+
+$taglist = explode("\n", trim($taglist));
+
+// Validate that target tag exists
+$tagexist = false;
+foreach($taglist as $t)
+    if ($t == $tag)
+        $tagexist = true;
+
+if (!$tagexist) {
+    echo "You must specify a tag that exists in the current repo.\n\n";
+    die();
+}
+
+echo "Accessing the repo...\n";
+
+// Build a working dir
+// $workingdir = tempnam("/tmp/","fteBuild_");
+$workingdir = realpath('.');
+// `rm $workingdir`;
+// mkdir($workingdir);
+// $workingdir = realpath($workingdir);
+
+// Get a snapshot of the build
+// $command = "git archive --format=tar $tag | tar -x -C $workingdir";
+// `$command`;
+
+if (!is_dir($targetPath))
+    `mkdir $targetPath -p`;
+$targetPath = realpath($targetPath);
+
+// file_put_contents($workingdir."/VERSION", $tag);
+
+define('APPLICATION_ENV',$environment);
+define('APPLICATION_PATH',$workingdir.'/application/');
+
+add_include_path($workingdir.'/library/');
+
+include($workingdir."/library/Bravo/Minifier.php");
+include($workingdir."/library/Zend/Config/Ini.php");
+
+echo "Project Build...\n";
+$minifier = new Bravo_Minifier(false);
+$minifier->fullCompile($tag, $targetPath);
+
+echo "Cleaning up...\n";
+chdir('/');
+`rm -rf /www/fteweb.cache/image/*`;
+`cp $targetPath/$tag/main.image.png /www/public/images`;
+echo "\n";
+
+function add_include_path ($path)
+{
+    foreach (func_get_args() AS $path)
+    {
+        if (!file_exists($path) OR (file_exists($path) && filetype($path) !== 'dir'))
+        {
+            trigger_error("Include path '{$path}' not exists", E_USER_WARNING);
+            continue;
+        }
+        
+        $paths = explode(PATH_SEPARATOR, get_include_path());
+        
+        if (array_search($path, $paths) === false)
+            array_push($paths, $path);
+        
+        set_include_path(implode(PATH_SEPARATOR, $paths));
+    }
+}
+
+function __autoload($class) {
+    
+    $fullPath = $fullPath1 = realpath(APPLICATION_PATH . '/../library').'/'.str_replace('_', DIRECTORY_SEPARATOR, $class).'.php';
+    if (!is_file($fullPath1))
+    {
+        $fullPath = $fullPath2 = APPLICATION_PATH.'/'.str_replace('_', DIRECTORY_SEPARATOR, $class).'.php';
+        if (!is_file($fullPath2))
+        {
+            return false;
+        }
+    }
+    include_once($fullPath);
+    return true;
+}
