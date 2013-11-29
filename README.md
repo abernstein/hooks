@@ -9,3 +9,8 @@ You will probably need to merge a few of these together if your project contains
 * Install
 
 Add to the .git/hooks or .git/hooks/module/*/hooks
+
+* Configure
+
+ln -s githooks/<hook> <path_to_modules>/hook 
+for module in <path_to_modules>/*/; do ln -s <path_to_shared>/pre-commit ${module}hooks/pre-commit; done
