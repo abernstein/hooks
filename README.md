@@ -21,7 +21,7 @@ git clone <repo>
 ln -s <path_to_hooks>/<hook> <path_to_modules>/<hook>
 
 if [ -w <hook> ]; then 
-  cat "bash <hook>" >> <path_to_hooks>/pre-commit
+  echo -e "\nbash <hook>" >> <path_to_hooks>/pre-commit
 fi;
 
 for module in <path_to_modules>/*/;
