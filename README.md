@@ -10,11 +10,22 @@ You will probably need to merge a few of these together if your project contains
 
 Add to the .git/hooks or .git/hooks/module/*/hooks
 
+or 
+```
+git clone <repo>
+```
+
 # Configure
 
 ```
-ln -s githooks/<hook> <path_to_modules>/hook
+ln -s <path_to_hooks>/<hook> <path_to_modules>/<hook>
+
+if [ -w <hook> ]; then 
+  cat "bash <hook>" >> <path_to_hooks>/pre-commit
+fi;
+
 for module in <path_to_modules>/*/;
   do ln -s <path_to_shared>/pre-commit ${module}hooks/pre-commit;
 done
 ```
+
