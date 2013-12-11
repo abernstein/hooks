@@ -22,6 +22,7 @@ ln -s <path_to_hooks>/<hook> <path_to_modules>/<hook>
 
 if [ -w <hook> ]; then 
   echo -e "\nbash <hook>" >> <path_to_hooks>/pre-commit
+  chmod +x <path_to_hooks>/pre-commit
 fi;
 
 for module in <path_to_modules>/*/;
