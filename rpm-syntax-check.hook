@@ -41,8 +41,6 @@ do
       fi
     fi
 
-echo $syntax;
-
     if [[ $syntax == "fail" ]]
     then
       echo -e "\nFATAL: Syntax is bad. See above output, bailing commit...."
