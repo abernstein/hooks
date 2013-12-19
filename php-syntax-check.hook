@@ -1,11 +1,44 @@
 #!/bin/bash
  
 git diff --cached --name-status --diff-filter=ACMR | while read STATUS FILE; do
-if [[ "$FILE" =~ ^.+(php|inc)$ ]]; then
+if [[ "$FILE" =~ ^.+(php|inc|phtml)$ ]]; then
+    DIR=$(git rev-parse --show-toplevel)
+    
+    # Auto-Run Composer
+    if [ -e "$DIR/composer.json" ]; then
+      if [ -d "$DIR/vendor" ]; then
+        composer.phar install
+      else
+        composer.phar update
+      fi
+    fi
+ 
+    # Lint the File for Syntax Errors
     php -l "$FILE" 1> /dev/null
     if [ $? -ne 0 ]; then
         echo "Aborting commit due to files with syntax errors" >&2
         exit 1
     fi
+    
+    # Clean up code syntax
+    php_beautifier -r -s2 -l "Pear() zfish() NewLines(after=T_DOC_COMMENT)" \
+      -f "application/*.php" -o ./application/
+    
+    # Check against Coding Standards
+    TMPSTANDARDS=$(mktemp)
+    # -n --report=summary|checkstyle --report-file=<FILE>
+    phpcs --standard=zend -n "$FILE" >> $TMPSTANDARDS
+    if [ -s $TMPSTANDARDS ]; then
+      echo -e "PHPCS: Coding Standards Violations\n ${TMPSTANDARDS}" 
+    fi
+    rm $TMPSTANDARDS
+    
+    TMPUNIT=$(mktemp)
+    # Run Against Unit-Test
+    phpunit $FILE >> $TMPUNIT
+    if [ -s $TMPUNIT ]; then
+      echo -e "PHPUNIT: Unit Test Violations\n ${TMPUNIT}" 
+    fi
+    rm $TMPUNIT
 fi
 done
