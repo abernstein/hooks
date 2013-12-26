@@ -1,0 +1,15 @@
+#!/bin/bash
+
+git diff --cached --name-status --diff-filter=ACMR | while read STATUS FILE; do
+if [[ "$FILE" =~ ^.+(json)$ ]]; then
+  DIR=$(git rev-parse --show-toplevel)
+
+  if [ -e "$DIR/composer.json" ]; then
+    composer validate;
+    if [ $? -ne 0 ]; then
+      echo -e "\n!!! Aborting commit due to files with sytax errors !!!" >&2
+      exit 1
+    fi
+  fi
+fi
+done

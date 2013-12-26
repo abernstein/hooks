@@ -1,11 +1,11 @@
 {
-    "name": "godaddy/fte-webui",
-    "description": "FTE Web UI Dependency",
+    "name": "abernstein/server-web-php",
+    "description": "Web Server Dependency",
     "license": "MIT",
     "authors": [
         {
             "name": "Aaron Bernstein",
-            "email": "abernstein@godaddy.com"
+            "email": "dev@aaronbernstein.com"
         }
     ],
     "repositories": [
@@ -17,7 +17,7 @@
     "autoload": {
       "psr-0": { "": "src/" }
     },
-    "target-dir": "/usr/share/php",
+    "require":{},
     "require-dev": {
         "phpunit/phpunit": "3.7.24",
         "phpdocumentor/phpdocumentor": "*",
