@@ -1,0 +1,34 @@
+{
+    "name": "godaddy/fte-webui",
+    "description": "FTE Web UI Dependency",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Aaron Bernstein",
+            "email": "abernstein@godaddy.com"
+        }
+    ],
+    "repositories": [
+      {
+        "type": "pear",
+        "url": "http://pear.php.net"
+      }
+    ],
+    "autoload": {
+      "psr-0": { "": "src/" }
+    },
+    "target-dir": "/usr/share/php",
+    "require-dev": {
+        "phpunit/phpunit": "3.7.24",
+        "phpdocumentor/phpdocumentor": "*",
+        "phploc/phploc": "*",
+        "squizlabs/php_codesniffer": "*",
+        "sebastian/phpdcd": "*",
+        "sebastian/phpcpd": "1.4.3",
+        "phpunit/phpcov": "*",
+        "pear-pear.php.net/PHP_Beautifier": "*",
+        "pdepend/pdepend": "*",
+        "phpmd/phpmd": "1.4.*"
+    },
+    "minimum-stability": "dev"
+}
