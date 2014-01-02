@@ -9,6 +9,7 @@
 // Get the args
 $targetPath  = "/tmp/minification/";
 $environment = (isset($argv[1]))?$argv[1]:'production';
+$tag = (isset($argv[2]))?$argv[2]:null;
 
 // validate that two args passed in
 if (!($environment == 'production' || $environment == 'beta')) {
@@ -18,46 +19,36 @@ if (!($environment == 'production' || $environment == 'beta')) {
 
 `sudo -p "Build process requires sudo access. Enter sudo password:" echo ""`;
 
-echo "**** BUILDING <$environment> TO $targetPath ****\n";
+//get latest tag from tag list if one was not provided
+if (is_null($tag)) {
+  // Get the tag list
+  $taglist = `git tag`;
 
-// Get the tag list
-$taglist = `git tag`;
-$taglist = trim($taglist);
+  if (strlen($taglist) == 0) {
+      echo "\n";
+      die();
+  }
 
-if (strlen($taglist) == 0) {
-    echo "\n";
+  //get a list of all tags that match X.X.X.X
+  if (preg_match_all('/\d+.\d+.\d+.\d+/', $taglist, $tags)) {
+    $tags = $tags[0];
+    //perform natural sort to make sure 2.10 is > 2.2
+    usort($tags, 'strnatcmp');
+    //get the most recent tag
+    $tags = array_reverse($tags);
+    $tag = $tags[0];
+  }
+  //no tag was provided and we could not find one
+  if (is_null($tag)) {
+    echo "Could not locate a valid X.X.X.X tag in the current repo.\n\n";
     die();
+  }
 }
-
-$taglist = explode("\n", trim($taglist));
-
-// Validate that target tag exists
-$tagexist = false;
-// Iterate backwords through tags to find the most recent 2.X.X.X version
-for($i = count($taglist) - 1; $i > 0; $i--) {
-    if (substr($taglist[$i], 0, 2) === '2.') {
-        $tagexist = true;
-        $tag = $taglist[$i];
-        break;
-    }
-}
-if (!$tagexist) {
-    echo "Could not locate a valid 2.X tag in the current repo.\n\n";
-    die();
-}
+echo "**** BUILDING <$environment> TAG <$tag> TO $targetPath ****\n";
 
 echo "Accessing the repo...\n";
 
-// Build a working dir
-// $workingdir = tempnam("/tmp/","fteBuild_");
 $workingdir = realpath('.');
-// `rm $workingdir`;
-// mkdir($workingdir);
-// $workingdir = realpath($workingdir);
-
-// Get a snapshot of the build
-// $command = "git archive --format=tar $tag | tar -x -C $workingdir";
-// `$command`;
 
 if (!is_dir($targetPath))
     `mkdir $targetPath -p`;
@@ -77,10 +68,14 @@ echo "Project Build...\n";
 $minifier = new Bravo_Minifier(false);
 $minifier->fullCompile($tag, $targetPath);
 
+`zip assets $targetPath/$tag/*`;
+`mv assets.zip /www/public`;
+`cp $targetPath/$tag/main.image.png /www/public/images`;
+
 echo "Cleaning up...\n";
 chdir('/');
 `rm -rf /www/fteweb.cache/image/*`;
-`cp $targetPath/$tag/main.image.png /www/public/images`;
+`rm -rf $targetPath/$tag`;
 echo "\n";
 
 function add_include_path ($path)
