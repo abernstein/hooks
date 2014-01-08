@@ -74,10 +74,12 @@ do
           echo "Puppet syntax error in ${file}. Run 'puppet parser validate ${file}'" >&2
           STATUS=2
         fi
-        # puppet-lint check
-        puppet-lint $PUPPETLINT_FLAGS --log-format "${file}:%{linenumber} %{KIND} - %{message}" $TMPFILE 2> /dev/null
-        if [[ $? -ne 0 ]] ; then
-          STATUS=2
+        if [ `which puppet-lint` ]; then
+          # puppet-lint check
+          puppet-lint $PUPPETLINT_FLAGS --log-format "${file}:%{linenumber} %{KIND} - %{message}" $TMPFILE 2> /dev/null
+          if [[ $? -ne 0 ]] ; then
+            STATUS=2
+          fi
         fi
       ;;
 
