@@ -59,6 +59,4 @@ do
   fi
 done
 
-echo -e $STATUS;
-
 exit $STATUS
