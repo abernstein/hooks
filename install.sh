@@ -23,33 +23,36 @@ echo -e "\nSCM project directory [/home/myname/repos/myproject]:"
 read PATH_TO_PROJECT
 
 if [ -d $PATH_TO_PROJECT ]; then
+  if [ -e $PATH_TO_PROJECT/.gitmodules ]; then
+    echo -e "\nWould you like us to apply hooks to the submodules too [Y/N]:"
+    read install_submodules
+  fi;
+
   filetypes=$(find $PATH_TO_PROJECT -type f -name "*.*" | awk -F. '{print $NF}' | sort -u)
-  echo -e "The project has these filetypes:\n${filetypes[@]}"
+  echo -e "\nThe project has these filetypes:\n${filetypes[@]}"
 
   # Install Hooks
   echo -e "\nList desired hooks separated by spaces [ all | php js puppet ]:"
-  read desired_hooks
-  declare -a apply_hooks=($desired_hooks);
+  read -a apply_hooks
 
   if [ $apply_hooks ]; then
-    for hook in $apply_hooks; do
+    for hook in ${apply_hooks[@]}; do
       hook_dir="${PATH_TO_PROJECT}/.git/hooks"
       append=`find "${PATH_TO_HOOKS}/includes" -maxdepth 2 -iname "*${hook}*.hook"`
       file=`basename $append`
 
       if [ -w $append ]; then
-        echo -e "\nbash $append" >> $hook_dir/pre-commit
-        echo "chmod +x $PATH_TO_HOOKS/pre-commit"
+        dups=`grep "${append}" $hook_dir/pre-commit` 
+        if [ "${dups}" == "" ]; then
+          echo -e "\napplying $hook to pre-commit"
+          echo -e "\nbash $append" >> $hook_dir/pre-commit
+          chmod +x $hook_dir/pre-commit
+        fi
       fi;
-
-      if [ -e $PATH_TO_PROJECT/.gitmodules ]; then
-        echo -e "\nWould you like us to apply hooks to the submodules too [Y/N]:"
-        read install_submodules
-        if [ "${install_submodules}" == "Y" ]; then
-          for module in $PATH_TO_PROJECT/*/;
-            do echo "ln -s <path_to_shared>/pre-commit ${module}hooks/pre-commit";
-          done;
-        fi;
+      if [ "${install_submodules}" == "Y" ]; then
+        for module in $PATH_TO_PROJECT/*/;
+          do echo "ln -s <path_to_shared>/pre-commit ${module}hooks/pre-commit";
+        done;
       fi;
     done;
   fi;
