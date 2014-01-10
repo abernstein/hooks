@@ -8,28 +8,12 @@ You will probably need to merge a few of these together if your project contains
 
 # Install
 
-Add to 
+Add separate include hooks directly/manually to your trigger (pre-commit)
 ```
 <path_to_hooks>/hooks and/or <path_to_hooks>/module/*/hooks
 ```
 
-or 
+or
 ```
-git clone <repo>
+git clone <repo>; cd $_; sudo bash ./install.sh
 ```
-
-# Configure
-
-```
-ln -s <path_to_hooks>/<hook> <path_to_modules>/<hook>
-
-if [ -w <hook> ]; then 
-  echo -e "\nbash <path_to_hooks>/<hook>" >> <path_to_hooks>/pre-commit
-  chmod +x <path_to_hooks>/pre-commit
-fi;
-
-for module in <path_to_modules>/*/;
-  do ln -s <path_to_shared>/pre-commit ${module}hooks/pre-commit;
-done
-```
-
