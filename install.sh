@@ -18,7 +18,7 @@ hooks=$(ls $PATH_TO_HOOKS/includes)
 hook_types=$(ls $PATH_TO_HOOKS/includes | cut -d'-' -f1)
 
 # Determine repository to install hooks in
-echo -e "\nSCM project directory [/home/myname/repos/myproject]:"
+echo -e "\nSCM project directory [${HOME}/repos/myproject]:"
 read PATH_TO_PROJECT
 
 if [ -d $PATH_TO_PROJECT ]; then
@@ -39,22 +39,26 @@ if [ -d $PATH_TO_PROJECT ]; then
     for hook in ${apply_hooks[@]}; do
       hook_dir="${PATH_TO_PROJECT}/.git/hooks"
       append=`find "${PATH_TO_HOOKS}/includes" -maxdepth 2 -iname "*${hook}*.hook"`
-      file=`basename $append`
 
       if [ -w $append ]; then
-        dups=`grep "${append}" $hook_dir/pre-commit` 
+        dups=`grep "${append}" $hook_dir/pre-commit`
         if [ "${dups}" == "" ]; then
-          echo -e "\napplying $hook to pre-commit"
-          echo -e "\nbash $append" >> $hook_dir/pre-commit
+          echo -e "\nApplying $hook to pre-commit chain"
+          echo -e "bash $append" >> $hook_dir/pre-commit
           chmod +x $hook_dir/pre-commit
-        fi
+        else
+          echo -e "\n$hook is already established"
+        fi;
       fi;
     done;
 
     if [ "${install_submodules}" == "Y" ]; then
-      for module in $PATH_TO_PROJECT/modules/*/; do
-        modulename=`basename $module`
-        ln -s $hook_dir/pre-commit $PATH_TO_PROJECT/.git/modules/${modulename}/hooks/pre-commit;
+      for module in $PATH_TO_PROJECT/*/; do
+        submodule_dir=`egrep "path" $PATH_TO_PROJECT/.gitmodules | head -1 | cut -d'=' -f2`
+        ln -s $hook_dir/pre-commit $PATH_TO_PROJECT/.git/modules/${submodule_dir}/hooks/pre-commit 2>/dev/null;
+        if [ $? -gt 0 ]; then
+          echo -e "There seems to already be hooks installed here";
+        fi;
       done;
     fi;
   fi;
